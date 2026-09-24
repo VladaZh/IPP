@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Прогноз погоды</title>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Страница с погодой (Москва)</h1>
+
+    <p>Текущая температура: <span id="Temp" style="font-weight: bold;">Загрузка...</span> °C</p>
+    <p>Максимальная температура: <span id="TempMax"></span> °C</p>
+    <p>Минимальная температура: <span id="TempMin"></span> °C</p>
+    <p>Давление: <span id="Pressure"></span> мм рт. ст.</p>
+    <p>Скорость ветра: <span id="Wind"></span> м/с</p>
+
+    <script>
+        var settings = {
+            "url": "https://api.openweathermap.org/data/2.5/weather?q=Moscow&units=metric&lang=ru&appid=d6df5941cfd53f396fde57a1f9f5ab5a",
+            "method": "GET",
+            "timeout": 5000,
+        };
+
+        $.ajax(settings).done(function(response) {
+            console.log("Полный ответ от API:", response);
+
+            var currentTemp = response.main.temp;
+            var tempMax = response.main.temp_max;
+            var tempMin = response.main.temp_min;
+            var pressure = response.main.pressure;
+            var windSpeed = response.wind.speed;
+
+            $("#Temp").text(currentTemp);
+            $("#TempMax").text(tempMax);
+            $("#TempMin").text(tempMin);
+            $("#Pressure").text(pressure);
+            $("#Wind").text(windSpeed);
+
+        }).fail(function(xhr, status, error) {
+            console.error("Ошибка запроса:", error);
+            $("#Temp").text("Ошибка загрузки");
+        });
+    </script>
+</body>
+</html>
