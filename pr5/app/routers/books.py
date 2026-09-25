@@ -63,5 +63,8 @@ def patch_book(book_id: int, book: BookUpdate, db: Session = Depends(get_db)):
 
 @router.delete("/books/{book_id}")
 def deleting_book(book_id: int, db: Session = Depends(get_db)):
-    delete_book(db, book_id)
+    is_deleted = delete_book(db, book_id)
+    if not is_deleted:
+        raise HTTPException(status_code=404, detail="Book not found")
+
     return {"message": f"Книга с ID {book_id} успешно удалена"}
