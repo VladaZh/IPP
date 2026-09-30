@@ -1,0 +1,183 @@
+openapi: 3.0.3
+info:
+  title: API Бронирования столиков в ресторане
+  description: |
+    Спецификация для управления бронированием столов. 
+    Позволяет просматривать столики и создавать бронирования.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+
+paths:
+  /tables:
+    get:
+      summary: Получить список всех столиков
+      description: Возвращает информацию о всех столиках ресторана и их вместимости.
+      operationId: getTables
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Table'
+              example:
+                - id: 1
+                  number: 5
+                  capacity: 4
+                  is_available: true
+                - id: 2
+                  number: 12
+                  capacity: 2
+                  is_available: false
+
+  /reservations:
+    post:
+      summary: Создать новое бронирование
+      description: Отправляет запрос на бронирование конкретного столика.
+      operationId: createReservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+            example:
+              guest_name: "Иван Иванов"
+              guest_phone: "+79991234567"
+              table_id: 1
+              guests_count: 2
+              reservation_time: "2026-10-15T19:00:00Z"
+      responses:
+        '201':
+          description: Бронирование успешно создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+              example:
+                id: 101
+                guest_name: "Иван Иванов"
+                guest_phone: "+79991234567"
+                table_id: 1
+                guests_count: 2
+                reservation_time: "2026-10-15T19:00:00Z"
+                status: "confirmed"
+        '400':
+          description: Ошибка валидации (например, столик уже занят)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Bad Request"
+                message: "Столик с ID 1 уже забронирован на это время."
+
+  /reservations/{id}:
+    get:
+      summary: Получить информацию о бронировании по ID
+      operationId: getReservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 101
+      responses:
+        '200':
+          description: Информация о бронировании
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+              example:
+                id: 101
+                guest_name: "Иван Иванов"
+                guest_phone: "+79991234567"
+                table_id: 1
+                guests_count: 2
+                reservation_time: "2026-10-15T19:00:00Z"
+                status: "confirmed"
+        '404':
+          description: Бронирование не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Not Found"
+                message: "Бронирование с ID 101 не найдено."
+
+components:
+  schemas:
+    Table:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        number:
+          type: integer
+          description: Номер столика в зале
+          example: 5
+        capacity:
+          type: integer
+          description: Максимальное количество гостей
+          example: 4
+        is_available:
+          type: boolean
+          description: Доступен ли столик прямо сейчас
+          example: true
+
+    ReservationRequest:
+      type: object
+      required:
+        - guest_name
+        - guest_phone
+        - table_id
+        - guests_count
+        - reservation_time
+      properties:
+        guest_name:
+          type: string
+          example: "Иван Иванов"
+        guest_phone:
+          type: string
+          example: "+79991234567"
+        table_id:
+          type: integer
+          example: 1
+        guests_count:
+          type: integer
+          example: 2
+        reservation_time:
+          type: string
+          format: date-time
+          example: "2026-10-15T19:00:00Z"
+
+    Reservation:
+      allOf:
+        - $ref: '#/components/schemas/ReservationRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              description: Уникальный ID бронирования
+              example: 101
+            status:
+              type: string
+              description: Статус бронирования
+              example: "confirmed"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Bad Request"
+        message:
+          type: string
+          example: "Описание ошибки"
